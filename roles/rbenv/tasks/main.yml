@@ -1,0 +1,95 @@
+---
+- name: install dependencies required to install Ruby
+  become: yes
+  apt:
+    pkg: [
+      'autoconf',
+      'bison',
+      'build-essential',
+      'libssl-dev',
+      'libyaml-dev',
+      'libreadline-dev',
+      'zlib1g-dev',
+      'libncurses5-dev',
+      'libffi-dev',
+      'libgdbm-dev',
+      'libjemalloc-dev'
+    ]
+    state: latest
+
+- name: clone 'rbenv' repo
+  become: yes
+  git:
+    repo: https://github.com/rbenv/rbenv.git
+    dest: /usr/local/rbenv
+    clone: yes
+
+- name: clone rbenv plugins' repositories
+  become: yes
+  git:
+    repo: https://github.com/rbenv/{{ item }}.git
+    dest: /usr/local/rbenv/plugins/{{ item }}
+    accept_hostkey: yes
+    update: yes
+  with_items:
+    - ruby-build
+    - rbenv-vars
+    - rbenv-gem-rehash
+
+- name: Install rbenv loader
+  become: yes
+  template:
+    src: rbenv.sh.j2
+    dest: /etc/profile.d/rbenv.sh
+    mode: "u=rwx,g=rx,o=r"
+
+- name: Determine which Rubies to install
+  set_fact:
+    ruby_versions_to_install: "{{ [default_ruby_version] | union(ruby_versions | default([])) | unique }}"
+
+- name: Install Ruby versions
+  become: yes
+  shell:
+    cmd: $(which su) - -c "env RUBY_CONFIGURE_OPTS='--with-jemalloc' rbenv install '{{ item }}'"
+    creates: /usr/local/rbenv/versions/{{ item }}
+  with_items: "{{ ruby_versions_to_install }}"
+
+- name: Install Bundler unless already present
+  become: yes
+  shell:
+    # Only install Bundler if version 2.1.4 or later is not present in this Ruby version
+    cmd: $(which su) - -c "env RBENV_VERSION='{{ item }}' rbenv exec gem list --exact --installed --version '= {{ default_bundler_version }}' bundler || env RBENV_VERSION='{{ item }}' rbenv exec gem install bundler --version '= {{ default_bundler_version }}'"
+  environment:
+    RBENV_VERSION: "{{ item }}"
+  with_items: "{{ ruby_versions_to_install }}"
+
+- name: set Ruby {{ default_ruby_version }} as the default version
+  become: yes
+  shell: $(which su) - -c "rbenv global '{{ default_ruby_version }}'"
+
+- block:
+  - name: Determine installed Ruby versions
+    become: yes
+    shell: $(which su) - -c "rbenv versions --bare"
+    register: rbenv_versions
+
+  - name: Determine which Ruby versions to remove
+    set_fact:
+      ruby_versions_to_remove: "{{ rbenv_versions.stdout_lines | difference([default_ruby_version]) | difference(ruby_versions | default([])) }}"
+
+  - block:
+    - name: "Removing Ruby versions:"
+      debug:
+        msg: "{{ ruby_versions_to_remove | join(', ') }}"
+
+    - name: Remove unneeded Ruby versions
+      become: yes
+      shell:
+        cmd: $(which su) - -c "rbenv uninstall -f '{{ item }}'"
+        removes: /usr/local/rbenv/versions/{{ item }}
+      with_items: "{{ ruby_versions_to_remove }}"
+
+    when: (ruby_versions_to_remove is defined) and ruby_versions_to_remove
+
+  # This only works if we can get the output from `rbenv versions`
+  when: not ansible_check_mode

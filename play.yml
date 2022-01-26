@@ -1,0 +1,15 @@
+---
+- hosts: linode
+  remote_user: ansibler
+  roles:
+    - common
+    - { role: rbenv, ruby_versions: ["2.7.2"] }
+    - passenger
+    - postgres
+    - todolist
+    - todolist-database
+    - yarn
+    - certbot
+    - redis
+  vars_files:
+    - vars/vault.yml

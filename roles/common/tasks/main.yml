@@ -1,0 +1,20 @@
+---
+- name: install convenience tools
+  become: yes
+  apt:
+    pkg: ['htop', 'vim', 'screen']
+    update_cache: yes
+    state: latest
+
+- name: install software-properties-common
+  become: yes
+  apt:
+    pkg: ['software-properties-common']
+    state: latest
+
+- include_tasks: ufw.yml
+
+# TODO: tasks for the following commands:
+# sudo add-apt-repository ppa:certbot/certbot
+# sudo apt install python-certbot-nginx
+# cronjob cert renewal: sudo certbot renew --dry-run

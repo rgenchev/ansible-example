@@ -1,0 +1,16 @@
+---
+- name: install redis-server
+  become: yes
+  apt:
+    pkg: redis-server
+    state: present
+  notify:
+    - restart redis
+
+- name: create redis.conf
+  become: yes
+  template: src=redis.conf.j2 dest=/etc/redis/redis.conf
+
+- name: ensure redis is running
+  become: yes
+  service: name=redis-server state=started

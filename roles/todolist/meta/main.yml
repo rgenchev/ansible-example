@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: user, username: 'todolist-app', ssh_keys: ["radoslav"] }

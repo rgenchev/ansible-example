@@ -1,0 +1,22 @@
+---
+- name: Assure ~/apps/todolist/shared/config/ dir exists
+  remote_user: todolist-app
+  file: path=~/apps/todolist/shared/config/ state=directory
+
+- name: Assure ~/apps/todolist/shared/config/credentials dir exists
+  remote_user: todolist-app
+  file: path=~/apps/todolist/shared/config/credentials state=directory
+
+- name: setup config files
+  remote_user: todolist-app
+  tags:
+    - app_config
+  template: 'src=apps/todolist/{{ item.src }} dest=~/apps/todolist/shared/config/{{ item.dest }}'
+  with_items:
+    - { src: 'database.yml.j2', dest: 'database.yml' }
+    - { src: 'master.key.j2', dest: 'master.key' }
+    - { src: 'production.key.j2', dest: 'credentials/production.key' }
+
+- name: make sure only the app user can access the app dir
+  remote_user: todolist-app
+  file: path=~/apps/todolist/shared/config mode="go-rwx" recurse=yes

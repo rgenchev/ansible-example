@@ -1,0 +1,22 @@
+- name: "install postgresql {{ postgres_version }} packages"
+  become: yes
+  apt:
+    pkg: ['postgresql', 'postgresql-contrib', 'libpq-dev']
+    state: present
+    update_cache: yes
+
+- name: Make sure that the data directory for postgres exists
+  become: yes
+  become_user: postgres
+  file: path={{ postgres_data_directory }} state=directory mode=0700
+
+- name: install prerequisites
+  become: yes
+  apt:
+    name: python3-psycopg2
+    state: latest
+
+- name: reload postgres
+  become: yes
+  service: name=postgresql state=reloaded
+  changed_when: False

@@ -1,0 +1,34 @@
+---
+- name: install ufw package
+  become: yes
+  apt:
+    pkg: 'ufw'
+    state: latest
+
+- name: allow traffic from ssh and enable
+  become: yes
+  ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+    state: enabled
+
+- name: allow traffic from port 80 and enable
+  become: yes
+  ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
+    state: enabled
+
+- name: allow traffic from port 443 and enable
+  become: yes
+  ufw:
+    rule: allow
+    port: '443'
+    proto: tcp
+    state: enabled
+
+- name: make sure ufw is running
+  become: yes
+  service: name=ufw state=started

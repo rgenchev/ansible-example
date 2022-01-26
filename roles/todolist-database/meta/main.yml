@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: database, db_name: "{{ todolist_db_name }}", db_username: "todolist", db_pwd: "{{ todolist_db_pwd }}" }

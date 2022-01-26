@@ -1,0 +1,29 @@
+---
+- name: Make sure the passenger apt gpg key is present
+  become: yes
+  apt_key: keyserver=keyserver.ubuntu.com id=561F9B9CAC40B2F7
+
+- name: add passenger repository
+  become: yes
+  apt_repository: repo='deb https://oss-binaries.phusionpassenger.com/apt/passenger {{ ansible_distribution_release }} main' state=present
+
+- name: install apt-transport-https and ca-certificates
+  become: yes
+  apt:
+    name: ['apt-transport-https', 'ca-certificates']
+    update_cache: yes
+    state: present
+
+- name: ensure passenger and nginx are present
+  become: yes
+  apt:
+    name: ['libnginx-mod-http-passenger', 'nginx']
+    update_cache: yes
+    state: present
+
+- name: write the main nginx config file
+  become: yes
+  template: src=linode/nginx.conf.j2 dest=/etc/nginx/nginx.conf
+
+- name: ensure nginx is running
+  service: name=nginx state=started

@@ -1,0 +1,37 @@
+---
+- name: Install the gpg key for nodejs LTS
+  become: yes
+  apt_key:
+    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    state: present
+
+- name: Install the nodejs LTS repos
+  become: yes
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/node_{{ node_version }}.x {{ ansible_distribution_release }} main"
+    state: present
+    update_cache: yes
+
+- name: Install the nodejs
+  become: yes
+  apt:
+    name: nodejs
+    state: present
+
+- name: add yarn gpg key
+  become: yes
+  apt_key:
+    url: "https://dl.yarnpkg.com/debian/pubkey.gpg"
+    state: present
+
+- name: add yarn apt repository
+  become: yes
+  apt_repository:
+    repo: deb https://dl.yarnpkg.com/debian/ stable main
+    state: present
+
+- name: install yarn
+  become: yes
+  apt:
+    pkg: yarn
+    state: latest

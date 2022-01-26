@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: user, username: 'ansibler', ssh_keys: "{{ ansibler_ssh_keys }}" }

@@ -1,0 +1,7 @@
+---
+- name: install packages needed by certbot
+  become: yes
+  apt:
+    pkg: ['certbot', 'python3-certbot-nginx']
+    update_cache: yes
+    state: latest

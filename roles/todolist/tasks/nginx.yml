@@ -1,0 +1,8 @@
+---
+- name: setup nginx config for todolist
+  remote_user: ansibler
+  become: yes
+  template: src=nginx/sites/todolist.j2 dest=/etc/nginx/sites-enabled/todolist
+
+- name: ensure nginx is running
+  service: name=nginx state=started

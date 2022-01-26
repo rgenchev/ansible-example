@@ -1,0 +1,21 @@
+- name: Create a new database with name {{ db_name }} for {{ db_username }}
+  become: yes
+  become_user: postgres
+  postgresql_db:
+    name: "{{ db_name }}"
+    encoding: 'UTF-8'
+
+- name: Setup postgres user {{ db_username }}
+  become: yes
+  become_user: postgres
+  postgresql_user:
+    db: "{{ db_name }}"
+    priv: ALL
+    name: "{{ db_username }}"
+    password: "{{ db_pwd }}"
+    encrypted: yes
+
+- name: reload postgres
+  become: yes
+  service: name=postgresql state=reloaded
+  changed_when: False
